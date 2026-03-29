@@ -1,0 +1,118 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@400;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
+
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #0058bc;
+  --color-primary-container: #0070eb;
+  --color-on-primary-container: #fefcff;
+  --color-primary-fixed: #d8e2ff;
+  --color-error: #ba1a1a;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
+  --color-surface: #f9f9ff;
+  --color-on-surface: #181c23;
+  --color-on-surface-variant: #414755;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f1f3fe;
+  --color-surface-container-highest: #e0e2ed;
+  
+  --font-headline: "Manrope", sans-serif;
+  --font-body: "Inter", sans-serif;
+  --font-label: "Inter", sans-serif;
+}
+
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+  vertical-align: middle;
+}
+
+.aqua-gradient {
+  background: linear-gradient(135deg, #0058bc 0%, #0070eb 100%);
+}
+
+.aqua-accent-gradient {
+  background: linear-gradient(180deg, rgba(249, 249, 255, 0) 0%, rgba(216, 226, 255, 0.4) 100%);
+}
+
+.logo-glow {
+  box-shadow: 0 0 60px rgba(0, 88, 188, 0.05);
+}
+
+body {
+  background-color: var(--color-surface);
+  color: var(--color-on-surface);
+  font-family: var(--font-body);
+}
+
+@theme {
+  --color-on-secondary-fixed: #001a41;
+  --color-on-error: #ffffff;
+  --color-inverse-on-surface: #eef0fc;
+  --color-on-tertiary-fixed-variant: #364a4d;
+  --color-on-surface-variant: #414755;
+  --color-primary: #0058bc;
+  --color-on-primary-fixed-variant: #004493;
+  --color-secondary: #405e96;
+  --color-outline: #717786;
+  --color-error: #ba1a1a;
+  --color-secondary-fixed-dim: #adc6ff;
+  --color-secondary-container: #a1befd;
+  --color-surface-container-highest: #e0e2ed;
+  --color-on-tertiary: #ffffff;
+  --color-on-surface: #181c23;
+  --color-on-secondary-container: #2d4c83;
+  --color-surface-container-high: #e6e8f3;
+  --color-on-background: #181c23;
+  --color-on-tertiary-container: #f6feff;
+  --color-primary-fixed-dim: #adc6ff;
+  --color-primary-container: #0070eb;
+  --color-surface-container: #ecedf9;
+  --color-surface: #f9f9ff;
+  --color-on-error-container: #93000a;
+  --color-on-primary-fixed: #001a41;
+  --color-background: #f9f9ff;
+  --color-on-primary-container: #fefcff;
+  --color-error-container: #ffdad6;
+  --color-surface-bright: #f9f9ff;
+  --color-inverse-primary: #adc6ff;
+  --color-inverse-surface: #2d3039;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-tint: #005bc1;
+  --color-outline-variant: #c1c6d7;
+  --color-on-tertiary-fixed: #091f21;
+  --color-tertiary-fixed: #d0e7ea;
+  --color-on-primary: #ffffff;
+  --color-tertiary-fixed-dim: #b4cbce;
+  --color-surface-variant: #e0e2ed;
+  --color-surface-dim: #d8d9e5;
+  --color-primary-fixed: #d8e2ff;
+  --color-tertiary: #4b6062;
+  --color-secondary-fixed: #d8e2ff;
+  --color-surface-container-low: #f1f3fe;
+  --color-tertiary-container: #63787b;
+  --color-on-secondary: #ffffff;
+  --color-on-secondary-fixed-variant: #26467d;
+
+  --font-headline: "Manrope", sans-serif;
+  --font-body: "Inter", sans-serif;
+  --font-label: "Inter", sans-serif;
+}
+
+@layer base {
+  body {
+    @apply bg-surface text-on-surface font-body antialiased;
+  }
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+/* Hide scrollbar for IE, Edge and Firefox */
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
