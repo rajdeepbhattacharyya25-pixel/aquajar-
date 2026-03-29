@@ -26,12 +26,13 @@ export default function Layout() {
       </main>
 
       {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-2 bg-white dark:bg-slate-900 rounded-t-3xl shadow-[0_-8px_24px_rgba(0,88,188,0.08)] border-t border-[#c1c6d7]/15 max-w-md mx-auto right-0">
+      <nav className="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-2 pb-6 pt-2 bg-white dark:bg-slate-900 rounded-t-3xl shadow-[0_-8px_24px_rgba(0,88,188,0.08)] border-t border-[#c1c6d7]/15 max-w-md mx-auto right-0">
         <NavItem to="/" icon="home" label="Home" />
-        <NavItem to="/customers" icon="group" label="Customers" />
+        <NavItem to="/customers" icon="group" label="Cust" />
         <NavItem to="/scan" icon="qr_code_scanner" label="Scan" />
         <NavItem to="/jars" icon="water_drop" label="Jars" />
-        <NavItem to="/reports" icon="assessment" label="Reports" />
+        <NavItem to="/reports" icon="assessment" label="Rpts" />
+        <NavItem to="/data" icon="settings_backup_restore" label="Data" />
       </nav>
     </div>
   );

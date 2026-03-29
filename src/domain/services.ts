@@ -2,6 +2,17 @@ import { v4 as uuidv4 } from 'uuid';
 import { getDB } from '../data/db';
 import { Customer, Jar, Transaction, DashboardStats, JarStatus } from './models';
 
+// --- SETTINGS SERVICES ---
+export const saveQrCode = async (data: string): Promise<void> => {
+  const db = await getDB();
+  await db.put('settings', data, 'qr_code');
+};
+
+export const getQrCode = async (): Promise<string | null> => {
+  const db = await getDB();
+  return (await db.get('settings', 'qr_code')) || null;
+};
+
 // --- BACKUP & RESTORE SERVICES ---
 export const exportData = async (): Promise<string> => {
   const db = await getDB();

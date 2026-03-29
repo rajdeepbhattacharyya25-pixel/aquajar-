@@ -10,6 +10,7 @@ import Scanner from './pages/Scanner';
 import Reports from './pages/Reports';
 import Transactions from './pages/Transactions';
 import Splash from './components/Splash';
+import DataManagement from './components/DataManagement';
 
 function App() {
   const [showSplash, setShowSplash] = useState(true);
@@ -20,7 +21,7 @@ function App() {
 
   return (
     <BrowserRouter>
-      <Toaster position="top-center" richColors />
+      <Toaster position="top-center" richColors toastOptions={{ style: { zIndex: 9999 } }} />
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Dashboard />} />
@@ -30,6 +31,7 @@ function App() {
           <Route path="scan" element={<Scanner />} />
           <Route path="reports" element={<Reports />} />
           <Route path="transactions" element={<Transactions />} />
+          <Route path="data" element={<DataManagement />} />
         </Route>
       </Routes>
     </BrowserRouter>

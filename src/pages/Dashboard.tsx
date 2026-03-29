@@ -1,10 +1,12 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAppStore } from '../store/appStore';
 import { useNavigate } from 'react-router-dom';
+import QrModal from '../components/QrModal';
 
 export default function Dashboard() {
   const { stats, customers, loadInitialData, isLoading, exportData, importData } = useAppStore();
   const navigate = useNavigate();
+  const [isQrModalOpen, setIsQrModalOpen] = useState(false);
 
   useEffect(() => {
     loadInitialData();
@@ -22,6 +24,8 @@ export default function Dashboard() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 pt-4 space-y-8">
+      <QrModal isOpen={isQrModalOpen} onClose={() => setIsQrModalOpen(false)} />
+      
       {/* Summary Bento Grid */}
       <section>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -59,7 +63,12 @@ export default function Dashboard() {
 
       {/* Quick Actions */}
       <section>
-        <h3 className="text-on-surface-variant text-[0.75rem] font-bold font-label tracking-[0.1em] uppercase mb-4 px-1">Quick Management</h3>
+        <div className="flex justify-between items-center mb-4 px-1">
+          <h3 className="text-on-surface-variant text-[0.75rem] font-bold font-label tracking-[0.1em] uppercase">Quick Management</h3>
+          <button onClick={() => setIsQrModalOpen(true)} className="text-primary text-[0.75rem] font-bold font-label uppercase flex items-center gap-1">
+            <span className="material-symbols-outlined text-sm">qr_code</span> Show QR
+          </button>
+        </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <button onClick={() => navigate('/scan')} className="aqua-gradient text-white h-20 rounded-2xl flex flex-col items-center justify-center gap-1 active:scale-95 transition-transform">
             <span className="material-symbols-outlined text-xl">qr_code_scanner</span>

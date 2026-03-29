@@ -25,6 +25,8 @@ interface AppState {
   exportData: () => Promise<string>;
   importData: (data: string) => Promise<void>;
   undoTransaction: (transactionId: string) => Promise<void>;
+  saveQrCode: (data: string) => Promise<void>;
+  getQrCode: () => Promise<string | null>;
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
@@ -184,5 +186,13 @@ export const useAppStore = create<AppState>((set, get) => ({
       set({ error: error.message, isLoading: false });
       throw error;
     }
+  },
+
+  saveQrCode: async (data: string) => {
+    await services.saveQrCode(data);
+  },
+
+  getQrCode: async () => {
+    return await services.getQrCode();
   },
 }));
