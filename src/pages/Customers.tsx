@@ -40,8 +40,9 @@ export default function Customers() {
         name: formData.get('name') as string,
         phone: formData.get('phone') as string,
         address: formData.get('address') as string,
-        payment_cycle: formData.get('payment_cycle') as any,
+        payment_cycle: Number(formData.get('payment_cycle')),
         credit_limit: Number(formData.get('credit_limit')),
+        price_per_jar: Number(formData.get('price_per_jar')),
         notes: formData.get('notes') as string,
       });
       setIsAdding(false);
@@ -60,8 +61,9 @@ export default function Customers() {
         name: formData.get('name') as string,
         phone: formData.get('phone') as string,
         address: formData.get('address') as string,
-        payment_cycle: formData.get('payment_cycle') as any,
+        payment_cycle: Number(formData.get('payment_cycle')),
         credit_limit: Number(formData.get('credit_limit')),
+        price_per_jar: Number(formData.get('price_per_jar')),
         notes: formData.get('notes') as string,
       });
       setEditingCustomer(null);
@@ -159,17 +161,17 @@ export default function Customers() {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Payment Cycle</label>
-              <select name="payment_cycle" defaultValue={initialData.payment_cycle || 'monthly'} className="w-full border border-gray-300 rounded-lg p-2 bg-white">
-                <option value="daily">Daily</option>
-                <option value="weekly">Weekly</option>
-                <option value="monthly">Monthly</option>
-              </select>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Payment Cycle (Jar Interval)</label>
+              <input required name="payment_cycle" type="number" inputMode="numeric" defaultValue={initialData.payment_cycle || 1} className="w-full border border-gray-300 rounded-lg p-2" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Credit Limit (₹)</label>
               <input name="credit_limit" type="number" inputMode="numeric" defaultValue={initialData.credit_limit || 1000} className="w-full border border-gray-300 rounded-lg p-2" />
             </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Price per Jar (₹)</label>
+            <input required name="price_per_jar" type="number" inputMode="numeric" defaultValue={initialData.price_per_jar || 20} className="w-full border border-gray-300 rounded-lg p-2" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
@@ -291,7 +293,7 @@ export default function Customers() {
                       )}
                       <div className="flex items-center gap-2">
                         <Calendar size={16} className="text-gray-400 shrink-0" />
-                        <span className="capitalize">{customer.payment_cycle} Payment Cycle</span>
+                        <span className="capitalize">Pay after every {customer.payment_cycle} jars</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <IndianRupee size={16} className="text-gray-400 shrink-0" />

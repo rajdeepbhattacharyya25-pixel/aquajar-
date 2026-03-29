@@ -1,5 +1,4 @@
 import { Outlet, NavLink } from 'react-router-dom';
-import { Plus } from 'lucide-react';
 
 export default function Layout() {
   return (
@@ -34,21 +33,6 @@ export default function Layout() {
         <NavItem to="/jars" icon="water_drop" label="Jars" />
         <NavItem to="/reports" icon="assessment" label="Reports" />
       </nav>
-
-      {/* FAB */}
-      <div className="fixed bottom-24 right-6 z-50">
-        <button 
-          onClick={() => {
-            // Quick actions
-            const action = prompt("Quick action: scan, payment, customer");
-            if (action === 'scan') window.location.href = '/scan';
-            // ...
-          }}
-          className="bg-blue-600 text-white p-4 rounded-full shadow-lg hover:bg-blue-700 transition-colors"
-        >
-          <Plus size={24} />
-        </button>
-      </div>
     </div>
   );
 }

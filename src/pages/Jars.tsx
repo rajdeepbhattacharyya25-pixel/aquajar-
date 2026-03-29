@@ -287,14 +287,14 @@ export default function Jars() {
         />
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-4">
         {filteredJars.length === 0 ? (
-          <div className="col-span-2 text-center text-gray-500 py-8">No jars found.</div>
+          <div className="col-span-2 sm:col-span-4 text-center text-gray-500 py-8">No jars found.</div>
         ) : (
           filteredJars.map(jar => (
             <div 
               key={jar.id} 
-              className={`relative bg-white p-4 rounded-xl shadow-sm border flex flex-col items-center transition-all ${
+              className={`relative bg-white p-2 rounded-lg shadow-sm border flex flex-col items-center transition-all ${
                 selectedJars.includes(jar.id) ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-100'
               }`}
               onClick={() => handleCardClick(jar.id)}
@@ -323,12 +323,12 @@ export default function Jars() {
                 <Download size={16} />
               </button>
               
-              <div className="bg-gray-50 p-2 rounded-lg mb-3 mt-2">
-                <QRCodeSVG id={`qr-${jar.qr_code}`} value={jar.qr_code} size={80} />
+              <div className="bg-gray-50 p-2 rounded-lg mb-2 mt-1">
+                <QRCodeSVG id={`qr-${jar.qr_code}`} value={jar.qr_code} size={60} />
               </div>
               
               <div 
-                className="relative cursor-pointer select-none flex items-center justify-center gap-1.5 mb-2 px-2 py-1 rounded-md hover:bg-gray-50 active:bg-gray-100 transition-colors z-10"
+                className="relative cursor-pointer select-none flex items-center justify-center gap-1 mb-2 px-1.5 py-0.5 rounded-md hover:bg-gray-50 active:bg-gray-100 transition-colors z-10"
                 style={{ WebkitTouchCallout: 'none' }}
                 onClick={(e) => { e.stopPropagation(); handleCopy(jar.qr_code, jar.id); }}
                 onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); handleCopy(jar.qr_code, jar.id); }}
@@ -340,18 +340,18 @@ export default function Jars() {
                 onMouseLeave={(e) => { e.stopPropagation(); handleCopyTouchEnd(); }}
                 title="Click or long-press to copy"
               >
-                <p className="text-xs font-mono text-gray-600">{jar.qr_code}</p>
+                <p className="text-[10px] font-mono text-gray-600">{jar.qr_code}</p>
                 {copiedId === jar.id ? (
-                  <Check size={14} className="text-green-500" />
+                  <Check size={12} className="text-green-500" />
                 ) : (
-                  <Copy size={14} className="text-gray-400" />
+                  <Copy size={12} className="text-gray-400" />
                 )}
               </div>
               
               {jar.status === 'available' && (
                 <div className="relative group">
-                  <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-green-100 text-green-700 border border-green-200 cursor-pointer">
-                    <CheckCircle size={16} className="mr-1.5" /> Available
+                  <span className="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-semibold bg-green-100 text-green-700 border border-green-200 cursor-pointer">
+                    <CheckCircle size={12} className="mr-1" /> Available
                   </span>
                   <div className="absolute top-full mt-1 hidden group-hover:block bg-white border border-gray-200 rounded-lg shadow-lg z-20 w-32 left-1/2 -translate-x-1/2">
                     <button onClick={(e) => { e.stopPropagation(); handleStatusChange(jar.id, 'lost'); }} className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-t-lg">Mark Lost</button>
@@ -360,9 +360,9 @@ export default function Jars() {
                 </div>
               )}
               {jar.status === 'with_customer' && (
-                <div className="flex flex-col items-center gap-1.5 relative group">
-                  <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-orange-100 text-orange-700 border border-orange-200 cursor-pointer">
-                    <Package size={16} className="mr-1.5" /> In Field
+                <div className="flex flex-col items-center gap-1 relative group">
+                  <span className="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-semibold bg-orange-100 text-orange-700 border border-orange-200 cursor-pointer">
+                    <Package size={12} className="mr-1" /> In Field
                   </span>
                   <div className="absolute top-full mt-1 hidden group-hover:block bg-white border border-gray-200 rounded-lg shadow-lg z-20 w-32 left-1/2 -translate-x-1/2">
                     <button onClick={(e) => { e.stopPropagation(); handleStatusChange(jar.id, 'available'); }} className="w-full text-left px-4 py-2 text-sm text-green-600 hover:bg-green-50 rounded-t-lg">Mark Returned</button>
@@ -370,16 +370,16 @@ export default function Jars() {
                     <button onClick={(e) => { e.stopPropagation(); handleStatusChange(jar.id, 'damaged'); }} className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-b-lg">Mark Damaged</button>
                   </div>
                   {jar.current_customer_id && (
-                    <span className="text-xs text-gray-600 font-medium text-center truncate w-full max-w-[120px]">
-                      {customers.find(c => c.id === jar.current_customer_id)?.name || 'Unknown Customer'}
+                    <span className="text-[10px] text-gray-600 font-medium text-center truncate w-full max-w-[100px]">
+                      {customers.find(c => c.id === jar.current_customer_id)?.name || 'Unknown'}
                     </span>
                   )}
                 </div>
               )}
               {(jar.status === 'lost' || jar.status === 'damaged') && (
                 <div className="relative group">
-                  <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-red-100 text-red-700 border border-red-200 capitalize cursor-pointer">
-                    <XCircle size={16} className="mr-1.5" /> {jar.status}
+                  <span className="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-semibold bg-red-100 text-red-700 border border-red-200 capitalize cursor-pointer">
+                    <XCircle size={12} className="mr-1" /> {jar.status}
                   </span>
                   <div className="absolute top-full mt-1 hidden group-hover:block bg-white border border-gray-200 rounded-lg shadow-lg z-20 w-32 left-1/2 -translate-x-1/2">
                     <button onClick={(e) => { e.stopPropagation(); handleStatusChange(jar.id, 'available'); }} className="w-full text-left px-4 py-2 text-sm text-green-600 hover:bg-green-50 rounded-lg">Mark Available</button>

@@ -101,7 +101,7 @@ export default function CustomerDetails() {
           )}
           <div className="flex items-center gap-3 text-gray-600">
             <Calendar size={20} className="text-gray-400 shrink-0" />
-            <span className="capitalize">{customer.payment_cycle} Payment Cycle</span>
+            <span>Pay after every {customer.payment_cycle} jars</span>
           </div>
           <div className="flex items-center gap-3 text-gray-600">
             <IndianRupee size={20} className="text-gray-400 shrink-0" />

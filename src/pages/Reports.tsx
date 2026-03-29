@@ -129,7 +129,7 @@ export default function Reports() {
                 </div>
                 <div className="text-right">
                   <p className="font-bold text-primary">₹{customer.total_due}</p>
-                  <p className="text-[10px] text-on-surface-variant uppercase tracking-wider">{customer.payment_cycle}</p>
+                  <p className="text-[10px] text-on-surface-variant uppercase tracking-wider">{customer.payment_cycle} jars</p>
                 </div>
               </div>
             );

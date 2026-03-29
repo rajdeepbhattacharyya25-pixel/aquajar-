@@ -6,13 +6,14 @@ export interface Customer {
   name: string;
   phone: string;
   address: string;
-  payment_cycle: 'daily' | 'weekly' | 'monthly';
+  payment_cycle: number;
   credit_limit: number;
   notes: string;
   created_at: number;
   // Computed/Cached fields for fast querying
   total_due: number;
   jars_held: number;
+  price_per_jar: number;
 }
 
 export interface Jar {

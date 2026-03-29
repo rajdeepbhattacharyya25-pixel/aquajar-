@@ -48,6 +48,7 @@ export const addCustomer = async (
     created_at: Date.now(),
     total_due: 0,
     jars_held: 0,
+    price_per_jar: data.price_per_jar || 20,
   };
   await db.put('customers', newCustomer);
   return newCustomer;
@@ -192,7 +193,7 @@ export const getTransactionsByCustomer = async (customerId: string): Promise<Tra
   return db.getAllFromIndex('transactions', 'by-customer', customerId);
 };
 
-export const processDelivery = async (jarId: string, customerId: string, pricePerJar: number = 20): Promise<void> => {
+export const processDelivery = async (jarId: string, customerId: string): Promise<void> => {
   const db = await getDB();
   const tx = db.transaction(['jars', 'customers', 'transactions'], 'readwrite');
   
@@ -214,7 +215,7 @@ export const processDelivery = async (jarId: string, customerId: string, pricePe
 
   // 2. Update Customer
   customer.jars_held += 1;
-  customer.total_due += pricePerJar;
+  customer.total_due += customer.price_per_jar;
   await customerStore.put(customer);
 
   // 3. Record Transaction
@@ -223,7 +224,7 @@ export const processDelivery = async (jarId: string, customerId: string, pricePe
     type: 'delivery',
     customer_id: customerId,
     jar_id: jarId,
-    amount: pricePerJar,
+    amount: customer.price_per_jar,
     jar_count: 1,
     note: 'Jar Delivered',
     timestamp: Date.now(),

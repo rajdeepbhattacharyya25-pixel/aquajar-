@@ -115,10 +115,10 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
   },
 
-  processDelivery: async (jarId, customerId, price = 20) => {
+  processDelivery: async (jarId, customerId) => {
     set({ isLoading: true, error: null });
     try {
-      await services.processDelivery(jarId, customerId, price);
+      await services.processDelivery(jarId, customerId);
       await get().loadInitialData();
     } catch (error: any) {
       set({ error: error.message, isLoading: false });
