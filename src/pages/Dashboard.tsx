@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useAppStore } from '../store/appStore';
 import { useNavigate } from 'react-router-dom';
 import QrModal from '../components/QrModal';
+import { isAtLimit } from '../lib/utils';
 
 export default function Dashboard() {
   const { stats, customers, loadInitialData, isLoading, exportData, importData } = useAppStore();
@@ -19,7 +20,13 @@ export default function Dashboard() {
   // Calculate overdue customers
   const overdueCustomers = customers
     .filter(c => c.total_due > 0)
-    .sort((a, b) => b.total_due - a.total_due)
+    .sort((a, b) => {
+      const aLimit = isAtLimit(a);
+      const bLimit = isAtLimit(b);
+      if (aLimit && !bLimit) return -1;
+      if (!aLimit && bLimit) return 1;
+      return b.total_due - a.total_due;
+    })
     .slice(0, 3);
 
   return (
@@ -142,25 +149,28 @@ export default function Dashboard() {
           {overdueCustomers.length === 0 ? (
             <p className="text-sm text-gray-500 px-1">No overdue customers.</p>
           ) : (
-            overdueCustomers.map((customer, index) => (
-              <div key={customer.id} className="bg-surface-container-lowest p-4 rounded-2xl flex items-center justify-between group hover:bg-surface-container-low transition-colors">
-                <div className="flex items-center gap-4">
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${index === 0 ? 'bg-error-container/30 text-error' : 'bg-primary-fixed/30 text-primary'}`}>
-                    <span className="material-symbols-outlined">{index === 0 ? 'priority_high' : 'person'}</span>
+            overdueCustomers.map((customer, index) => {
+              const atLimit = isAtLimit(customer);
+              return (
+                <div key={customer.id} className={`p-4 rounded-2xl flex items-center justify-between group transition-colors ${atLimit ? 'bg-red-50 border border-red-100' : 'bg-surface-container-lowest hover:bg-surface-container-low'}`}>
+                  <div className="flex items-center gap-4">
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${atLimit ? 'bg-red-100 text-red-600' : index === 0 ? 'bg-error-container/30 text-error' : 'bg-primary-fixed/30 text-primary'}`}>
+                      <span className="material-symbols-outlined">{atLimit ? 'warning' : index === 0 ? 'priority_high' : 'person'}</span>
+                    </div>
+                    <div>
+                      <h4 className="text-on-surface font-semibold font-headline">{customer.name}</h4>
+                      <p className="text-[0.75rem] text-on-surface-variant">{customer.jars_held} Jars • {customer.payment_cycle} jars cycle</p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="text-on-surface font-semibold font-headline">{customer.name}</h4>
-                    <p className="text-[0.75rem] text-on-surface-variant">{customer.jars_held} Jars • {customer.payment_cycle} jars</p>
+                  <div className="text-right">
+                    <p className={`font-bold text-lg ${atLimit || index === 0 ? 'text-error' : 'text-on-surface'}`}>₹{customer.total_due}</p>
+                    <span className={`text-[0.65rem] font-bold uppercase tracking-tighter ${atLimit || index === 0 ? 'text-error' : 'text-primary'}`}>
+                      {atLimit ? 'Limit Reached' : index === 0 ? 'High Debt' : 'Pending'}
+                    </span>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className={`font-bold text-lg ${index === 0 ? 'text-error' : 'text-on-surface'}`}>₹{customer.total_due}</p>
-                  <span className={`text-[0.65rem] font-bold uppercase tracking-tighter ${index === 0 ? 'text-error' : 'text-primary'}`}>
-                    {index === 0 ? 'High Debt' : 'Pending'}
-                  </span>
-                </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       </section>

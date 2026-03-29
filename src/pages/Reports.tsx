@@ -112,24 +112,24 @@ export default function Reports() {
             const colorClass = colors[index % colors.length];
             
             return (
-              <div key={customer.id} className="flex items-center justify-between p-2 bg-surface-container-low rounded-lg hover:bg-surface-container transition-colors">
-                <div className="flex items-center gap-2">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-[10px] ${colorClass}`}>
+              <div key={customer.id} className="flex items-center justify-between p-3 bg-surface-container-low rounded-xl hover:bg-surface-container transition-colors">
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ${colorClass}`}>
                     {initials}
                   </div>
                   <div>
-                    <h4 className="font-bold text-on-surface text-xs leading-none">{customer.name}</h4>
-                    <p className="text-[9px] text-on-surface-variant mt-0.5">{customer.jars_held} Jars this week</p>
+                    <h4 className="font-bold text-on-surface text-sm leading-tight">{customer.name}</h4>
+                    <p className="text-[11px] text-on-surface-variant mt-0.5">{customer.jars_held} Jars this week</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="font-bold text-primary text-xs">₹{customer.total_due}</p>
-                  <p className="text-[8px] text-on-surface-variant uppercase tracking-wider">{customer.payment_cycle} jars</p>
+                  <p className="font-bold text-primary text-sm">₹{customer.total_due}</p>
+                  <p className="text-[10px] text-on-surface-variant uppercase tracking-wider">{customer.payment_cycle} jars</p>
                 </div>
               </div>
             );
           }) : (
-            <div className="col-span-2 text-center py-4 text-on-surface-variant text-[10px]">
+            <div className="col-span-2 text-center py-4 text-on-surface-variant text-sm">
               No customers found.
             </div>
           )}
@@ -138,12 +138,18 @@ export default function Reports() {
 
       {/* Actions */}
       <section className="flex flex-col sm:flex-row gap-2 py-2">
-        <button className="flex-1 h-10 bg-gradient-to-r from-primary to-primary-container text-white rounded-lg font-bold flex items-center justify-center gap-1 text-[10px] shadow-[0_2px_6px_rgba(0,88,188,0.15)] active:scale-95 transition-all">
-          <span className="material-symbols-outlined text-[10px]">picture_as_pdf</span>
+        <button 
+          onClick={() => alert('PDF Report generation is not yet implemented.')}
+          className="flex-1 h-12 bg-gradient-to-r from-primary to-primary-container text-white rounded-lg font-bold flex items-center justify-center gap-2 text-sm shadow-[0_2px_6px_rgba(0,88,188,0.15)] active:scale-95 transition-all"
+        >
+          <span className="material-symbols-outlined text-sm">picture_as_pdf</span>
           PDF Report
         </button>
-        <button className="flex-1 h-10 bg-surface-container-highest text-on-surface rounded-lg font-bold flex items-center justify-center gap-1 text-[10px] active:scale-95 transition-all">
-          <span className="material-symbols-outlined text-[10px]">share</span>
+        <button 
+          onClick={() => alert('Sharing functionality is not yet implemented.')}
+          className="flex-1 h-12 bg-surface-container-highest text-on-surface rounded-lg font-bold flex items-center justify-center gap-2 text-sm active:scale-95 transition-all"
+        >
+          <span className="material-symbols-outlined text-sm">share</span>
           Share
         </button>
       </section>

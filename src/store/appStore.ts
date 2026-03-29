@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { Customer, Jar, Transaction, DashboardStats, JarStatus } from '../domain/models';
 import * as services from '../domain/services';
+import { isAtLimit } from '../lib/utils';
 
 interface AppState {
   customers: Customer[];
@@ -122,6 +123,16 @@ export const useAppStore = create<AppState>((set, get) => ({
     try {
       await services.processDelivery(jarId, customerId);
       await get().loadInitialData();
+      
+      // Check if customer reached limit after this delivery
+      const customer = get().customers.find(c => c.id === customerId);
+      if (customer && isAtLimit(customer)) {
+        const { toast } = await import('sonner');
+        toast.error(`Limit Reached! ${customer.name} has reached their payment cycle of ${customer.payment_cycle} jars.`, {
+          description: 'Please collect payment before next delivery.',
+          duration: 5000,
+        });
+      }
     } catch (error: any) {
       set({ error: error.message, isLoading: false });
       throw error;

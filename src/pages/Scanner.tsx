@@ -5,6 +5,7 @@ import { Html5QrcodeScanner } from 'html5-qrcode';
 import * as services from '../domain/services';
 import { Jar } from '../domain/models';
 import { toast } from 'sonner';
+import { isAtLimit } from '../lib/utils';
 
 export default function Scanner() {
   const { customers, loadInitialData, processDelivery, processReturn } = useAppStore();
@@ -86,6 +87,18 @@ export default function Scanner() {
           setIsProcessing(false);
           return;
         }
+
+        const customer = customers.find(c => c.id === selectedCustomer);
+        if (customer && isAtLimit(customer)) {
+          const confirmDelivery = window.confirm(
+            `WARNING: ${customer.name} has reached their payment limit (Due: ₹${customer.total_due}). \n\nAre you sure you want to deliver another jar without payment?`
+          );
+          if (!confirmDelivery) {
+            setIsProcessing(false);
+            return;
+          }
+        }
+
         await processDelivery(jar.id, selectedCustomer);
         if (navigator.vibrate) navigator.vibrate(200);
         toast.success('Jar delivered successfully!');
@@ -183,13 +196,35 @@ export default function Scanner() {
               <select 
                 value={selectedCustomer}
                 onChange={(e) => setSelectedCustomer(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg p-3 bg-white text-base"
+                className={`w-full border rounded-lg p-3 bg-white text-base ${
+                  selectedCustomer && customers.find(c => c.id === selectedCustomer) && isAtLimit(customers.find(c => c.id === selectedCustomer)!)
+                    ? 'border-red-500 ring-2 ring-red-100'
+                    : 'border-gray-300'
+                }`}
               >
                 <option value="">-- Choose Customer --</option>
-                {customers.map(c => (
-                  <option key={c.id} value={c.id}>{c.name} ({c.phone})</option>
-                ))}
+                {customers.map(c => {
+                  const atLimit = isAtLimit(c);
+                  return (
+                    <option key={c.id} value={c.id} className={atLimit ? 'text-red-600 font-bold' : ''}>
+                      {c.name} ({c.phone}) {atLimit ? ' - LIMIT REACHED' : ''}
+                    </option>
+                  );
+                })}
               </select>
+              
+              {selectedCustomer && customers.find(c => c.id === selectedCustomer) && isAtLimit(customers.find(c => c.id === selectedCustomer)!) && (
+                <div className="bg-red-50 border border-red-200 p-3 rounded-lg flex items-start gap-2 animate-pulse">
+                  <div className="bg-red-100 text-red-600 p-1 rounded-full">
+                    <ChevronUp size={16} className="rotate-180" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-red-700 uppercase tracking-wider">Payment Limit Reached</p>
+                    <p className="text-sm text-red-600">This customer has ₹{customers.find(c => c.id === selectedCustomer)?.total_due} pending. Collect payment before delivery.</p>
+                  </div>
+                </div>
+              )}
+
               <button 
                 onClick={() => handleAction('deliver')}
                 disabled={!selectedCustomer || isProcessing}

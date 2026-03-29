@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Plus, Search, Phone, IndianRupee, CreditCard, MapPin, Calendar, FileText, ChevronDown, ChevronUp, Pencil, Trash2, X, Check, User } from 'lucide-react';
 import { Customer } from '../domain/models';
 import { toast } from 'sonner';
+import { isAtLimit } from '../lib/utils';
 
 export default function Customers() {
   const { customers, loadInitialData, addCustomer, updateCustomer, deleteCustomer, recordPayment } = useAppStore();
@@ -233,12 +234,17 @@ export default function Customers() {
         ) : (
           filteredCustomers.map(customer => {
             const isExpanded = expandedCustomerId === customer.id;
+            const atLimit = isAtLimit(customer);
             
             return (
               <div 
                 key={customer.id} 
                 className={`bg-white rounded-xl shadow-sm border overflow-hidden transition-all duration-200 ${
-                  selectedCustomers.includes(customer.id) ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-100'
+                  selectedCustomers.includes(customer.id) 
+                    ? 'border-blue-500 ring-2 ring-blue-200' 
+                    : atLimit 
+                      ? 'border-red-300 bg-red-50/30' 
+                      : 'border-gray-100'
                 }`}
               >
                 {/* Header / Summary (Clickable) */}
@@ -265,6 +271,9 @@ export default function Customers() {
                   <div className={`flex-1 ${selectedCustomers.length > 0 ? 'pl-8' : ''}`}>
                     <div className="flex items-center gap-2">
                       <h3 className="font-semibold text-gray-800 text-lg truncate">{customer.name}</h3>
+                      {atLimit && (
+                        <span className="bg-red-100 text-red-700 text-[10px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider">Limit Reached</span>
+                      )}
                       {selectedCustomers.length === 0 && (
                         isExpanded ? <ChevronUp size={16} className="text-gray-400" /> : <ChevronDown size={16} className="text-gray-400" />
                       )}
