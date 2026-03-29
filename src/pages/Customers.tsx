@@ -22,11 +22,13 @@ export default function Customers() {
   }, [loadInitialData]);
 
   const filteredCustomers = customers.filter(c => {
-    const searchLower = search.toLowerCase();
+    const searchLower = search.toLowerCase().trim();
+    if (!searchLower) return true;
     return (
       (c.name && c.name.toLowerCase().includes(searchLower)) || 
       (c.phone && c.phone.toLowerCase().includes(searchLower)) ||
-      (c.address && c.address.toLowerCase().includes(searchLower))
+      (c.address && c.address.toLowerCase().includes(searchLower)) ||
+      (c.notes && c.notes.toLowerCase().includes(searchLower))
     );
   });
 
@@ -77,6 +79,7 @@ export default function Customers() {
       try {
         await recordPayment(paymentModal.customerId, amount);
         setPaymentModal({ isOpen: false, customerId: '', name: '', due: 0 });
+        if (navigator.vibrate) navigator.vibrate(200);
         toast.success(`Payment of ₹${amount} recorded for ${paymentModal.name}`);
       } catch (error: any) {
         toast.error(error.message || 'Failed to record payment');
@@ -259,7 +262,7 @@ export default function Customers() {
                   
                   <div className={`flex-1 ${selectedCustomers.length > 0 ? 'pl-8' : ''}`}>
                     <div className="flex items-center gap-2">
-                      <h3 className="font-semibold text-gray-800 text-lg">{customer.name}</h3>
+                      <h3 className="font-semibold text-gray-800 text-lg truncate">{customer.name}</h3>
                       {selectedCustomers.length === 0 && (
                         isExpanded ? <ChevronUp size={16} className="text-gray-400" /> : <ChevronDown size={16} className="text-gray-400" />
                       )}

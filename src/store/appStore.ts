@@ -22,6 +22,9 @@ interface AppState {
   processReturn: (jarId: string) => Promise<void>;
   recordPayment: (customerId: string, amount: number, note?: string) => Promise<void>;
   loadCustomerTransactions: (customerId: string) => Promise<void>;
+  exportData: () => Promise<string>;
+  importData: (data: string) => Promise<void>;
+  undoTransaction: (transactionId: string) => Promise<void>;
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
@@ -154,6 +157,32 @@ export const useAppStore = create<AppState>((set, get) => ({
       set({ transactions, isLoading: false });
     } catch (error: any) {
       set({ error: error.message, isLoading: false });
+    }
+  },
+
+  exportData: async () => {
+    return await services.exportData();
+  },
+
+  importData: async (data: string) => {
+    set({ isLoading: true, error: null });
+    try {
+      await services.importData(data);
+      await get().loadInitialData();
+    } catch (error: any) {
+      set({ error: error.message, isLoading: false });
+      throw error;
+    }
+  },
+
+  undoTransaction: async (transactionId: string) => {
+    set({ isLoading: true, error: null });
+    try {
+      await services.undoTransaction(transactionId);
+      await get().loadInitialData();
+    } catch (error: any) {
+      set({ error: error.message, isLoading: false });
+      throw error;
     }
   },
 }));

@@ -1,8 +1,9 @@
 import { Outlet, NavLink } from 'react-router-dom';
+import { Plus } from 'lucide-react';
 
 export default function Layout() {
   return (
-    <div className="flex flex-col min-h-screen max-w-md mx-auto bg-surface overflow-hidden relative shadow-xl font-body text-on-surface antialiased pb-32">
+    <div className="flex flex-col h-dvh max-w-md mx-auto bg-surface overflow-hidden relative shadow-xl font-body text-on-surface antialiased pb-32">
       {/* TopAppBar Shell */}
       <header className="bg-[#f9f9ff] dark:bg-slate-950 flex justify-between items-center w-full px-6 py-4 sticky top-0 z-40">
         <div className="flex items-center gap-3">
@@ -33,6 +34,21 @@ export default function Layout() {
         <NavItem to="/jars" icon="water_drop" label="Jars" />
         <NavItem to="/reports" icon="assessment" label="Reports" />
       </nav>
+
+      {/* FAB */}
+      <div className="fixed bottom-24 right-6 z-50">
+        <button 
+          onClick={() => {
+            // Quick actions
+            const action = prompt("Quick action: scan, payment, customer");
+            if (action === 'scan') window.location.href = '/scan';
+            // ...
+          }}
+          className="bg-blue-600 text-white p-4 rounded-full shadow-lg hover:bg-blue-700 transition-colors"
+        >
+          <Plus size={24} />
+        </button>
+      </div>
     </div>
   );
 }

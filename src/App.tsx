@@ -8,6 +8,7 @@ import CustomerDetails from './pages/CustomerDetails';
 import Jars from './pages/Jars';
 import Scanner from './pages/Scanner';
 import Reports from './pages/Reports';
+import Transactions from './pages/Transactions';
 import Splash from './components/Splash';
 
 function App() {
@@ -28,6 +29,7 @@ function App() {
           <Route path="jars" element={<Jars />} />
           <Route path="scan" element={<Scanner />} />
           <Route path="reports" element={<Reports />} />
+          <Route path="transactions" element={<Transactions />} />
         </Route>
       </Routes>
     </BrowserRouter>

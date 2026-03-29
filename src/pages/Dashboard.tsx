@@ -3,7 +3,7 @@ import { useAppStore } from '../store/appStore';
 import { useNavigate } from 'react-router-dom';
 
 export default function Dashboard() {
-  const { stats, customers, loadInitialData, isLoading } = useAppStore();
+  const { stats, customers, loadInitialData, isLoading, exportData, importData } = useAppStore();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -76,6 +76,49 @@ export default function Dashboard() {
           <button onClick={() => navigate('/jars')} className="bg-surface-container-highest text-on-surface h-24 rounded-2xl flex flex-col items-center justify-center gap-2 active:scale-95 transition-transform">
             <span className="material-symbols-outlined">inventory_2</span>
             <span className="text-[0.875rem] font-semibold">Add Jar</span>
+          </button>
+          <button onClick={() => navigate('/transactions')} className="bg-surface-container-highest text-on-surface h-24 rounded-2xl flex flex-col items-center justify-center gap-2 active:scale-95 transition-transform">
+            <span className="material-symbols-outlined">history</span>
+            <span className="text-[0.875rem] font-semibold">Transactions</span>
+          </button>
+          <button 
+            onClick={async () => {
+              const data = await exportData();
+              const blob = new Blob([data], { type: 'application/json' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `aquajar_backup_${new Date().toISOString()}.json`;
+              a.click();
+            }}
+            className="bg-surface-container-highest text-on-surface h-24 rounded-2xl flex flex-col items-center justify-center gap-2 active:scale-95 transition-transform"
+          >
+            <span className="material-symbols-outlined">download</span>
+            <span className="text-[0.875rem] font-semibold">Export</span>
+          </button>
+          <button 
+            onClick={() => {
+              const input = document.createElement('input');
+              input.type = 'file';
+              input.accept = '.json';
+              input.onchange = async (e) => {
+                const file = (e.target as HTMLInputElement).files?.[0];
+                if (file) {
+                  const reader = new FileReader();
+                  reader.onload = async (e) => {
+                    const data = e.target?.result as string;
+                    await importData(data);
+                    alert('Data imported successfully');
+                  };
+                  reader.readAsText(file);
+                }
+              };
+              input.click();
+            }}
+            className="bg-surface-container-highest text-on-surface h-24 rounded-2xl flex flex-col items-center justify-center gap-2 active:scale-95 transition-transform"
+          >
+            <span className="material-symbols-outlined">upload</span>
+            <span className="text-[0.875rem] font-semibold">Import</span>
           </button>
         </div>
       </section>

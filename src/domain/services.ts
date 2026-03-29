@@ -2,6 +2,31 @@ import { v4 as uuidv4 } from 'uuid';
 import { getDB } from '../data/db';
 import { Customer, Jar, Transaction, DashboardStats, JarStatus } from './models';
 
+// --- BACKUP & RESTORE SERVICES ---
+export const exportData = async (): Promise<string> => {
+  const db = await getDB();
+  const customers = await db.getAll('customers');
+  const jars = await db.getAll('jars');
+  const transactions = await db.getAll('transactions');
+  return JSON.stringify({ customers, jars, transactions });
+};
+
+export const importData = async (data: string): Promise<void> => {
+  const { customers, jars, transactions } = JSON.parse(data);
+  const db = await getDB();
+  const tx = db.transaction(['customers', 'jars', 'transactions'], 'readwrite');
+  
+  await tx.objectStore('customers').clear();
+  await tx.objectStore('jars').clear();
+  await tx.objectStore('transactions').clear();
+  
+  for (const customer of customers) await tx.objectStore('customers').put(customer);
+  for (const jar of jars) await tx.objectStore('jars').put(jar);
+  for (const transaction of transactions) await tx.objectStore('transactions').put(transaction);
+  
+  await tx.done;
+};
+
 // --- CUSTOMER SERVICES ---
 export const getCustomers = async (): Promise<Customer[]> => {
   const db = await getDB();
@@ -280,6 +305,44 @@ export const recordPayment = async (customerId: string, amount: number, note: st
   };
   await transactionStore.put(transaction);
 
+  await tx.done;
+};
+
+export const undoTransaction = async (transactionId: string): Promise<void> => {
+  const db = await getDB();
+  const tx = db.transaction(['jars', 'customers', 'transactions'], 'readwrite');
+  
+  const jarStore = tx.objectStore('jars');
+  const customerStore = tx.objectStore('customers');
+  const transactionStore = tx.objectStore('transactions');
+
+  const transaction = await transactionStore.get(transactionId);
+  if (!transaction) throw new Error('Transaction not found');
+
+  const customer = await customerStore.get(transaction.customer_id);
+  if (!customer) throw new Error('Customer not found');
+
+  if (transaction.type === 'delivery') {
+    if (!transaction.jar_id) throw new Error('Invalid delivery transaction');
+    const jar = await jarStore.get(transaction.jar_id);
+    if (!jar) throw new Error('Jar not found');
+
+    // Reverse delivery
+    jar.status = 'available';
+    jar.current_customer_id = null;
+    jar.last_updated = Date.now();
+    await jarStore.put(jar);
+
+    customer.jars_held = Math.max(0, customer.jars_held - 1);
+    customer.total_due -= transaction.amount;
+    await customerStore.put(customer);
+  } else if (transaction.type === 'payment') {
+    // Reverse payment
+    customer.total_due += transaction.amount;
+    await customerStore.put(customer);
+  }
+
+  await transactionStore.delete(transactionId);
   await tx.done;
 };
 

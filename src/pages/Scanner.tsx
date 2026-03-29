@@ -14,6 +14,7 @@ export default function Scanner() {
   const [selectedCustomer, setSelectedCustomer] = useState('');
   const [isScanning, setIsScanning] = useState(false);
   const [showCustomerDetails, setShowCustomerDetails] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     loadInitialData();
@@ -37,6 +38,7 @@ export default function Scanner() {
 
     scanner.render(
       (decodedText) => {
+        if (navigator.vibrate) navigator.vibrate(100);
         setScanResult(decodedText);
         setIsScanning(false);
         scanner.clear().catch(console.error);
@@ -76,28 +78,34 @@ export default function Scanner() {
 
   const handleAction = async (action: 'deliver' | 'return') => {
     if (!jar) return;
+    setIsProcessing(true);
     try {
       if (action === 'deliver') {
         if (!selectedCustomer) {
           toast.error('Please select a customer.');
+          setIsProcessing(false);
           return;
         }
         await processDelivery(jar.id, selectedCustomer);
+        if (navigator.vibrate) navigator.vibrate(200);
         toast.success('Jar delivered successfully!');
       } else if (action === 'return') {
         await processReturn(jar.id);
+        if (navigator.vibrate) navigator.vibrate(200);
         toast.success('Jar returned successfully!');
       }
-      // Reset after 2 seconds
+      // Reset after 0.5 seconds
       setTimeout(() => {
         setScanResult(null);
         setJar(null);
         setSelectedCustomer('');
         setManualCode('');
         setShowCustomerDetails(false);
-      }, 2000);
+        setIsProcessing(false);
+      }, 500);
     } catch (error: any) {
       toast.error(error.message || 'Failed to process action');
+      setIsProcessing(false);
     }
   };
 
@@ -147,7 +155,7 @@ export default function Scanner() {
                 placeholder="Enter QR Code manually" 
                 value={manualCode}
                 onChange={(e) => setManualCode(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 uppercase"
+                className="w-full pl-12 pr-4 py-4 bg-white border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 uppercase text-lg"
               />
             </div>
             <button type="submit" className="bg-blue-600 text-white px-4 rounded-xl shadow-sm">
@@ -161,9 +169,9 @@ export default function Scanner() {
             <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 text-blue-600 rounded-full mb-3">
               <QrCode size={32} />
             </div>
-            <h3 className="text-lg font-bold text-gray-800 font-mono">{scanResult}</h3>
+            <h3 className="text-lg font-bold text-gray-800 font-mono truncate">{scanResult}</h3>
             {jar && (
-              <p className={`text-sm font-medium mt-1 ${jar.status === 'available' ? 'text-green-600' : 'text-orange-600'}`}>
+              <p className={`text-sm font-medium mt-1 truncate ${jar.status === 'available' ? 'text-green-600' : 'text-orange-600'}`}>
                 Status: {jar.status.replace('_', ' ').toUpperCase()}
               </p>
             )}
@@ -184,10 +192,10 @@ export default function Scanner() {
               </select>
               <button 
                 onClick={() => handleAction('deliver')}
-                disabled={!selectedCustomer}
+                disabled={!selectedCustomer || isProcessing}
                 className="w-full bg-blue-600 disabled:bg-blue-300 text-white font-semibold py-3 rounded-lg flex items-center justify-center"
               >
-                Confirm Delivery <ArrowRight size={18} className="ml-2" />
+                {isProcessing ? 'Processing...' : 'Confirm Delivery'} <ArrowRight size={18} className="ml-2" />
               </button>
             </div>
           )}
@@ -227,9 +235,10 @@ export default function Scanner() {
               )}
               <button 
                 onClick={() => handleAction('return')}
-                className="w-full bg-green-600 text-white font-semibold py-3 rounded-lg flex items-center justify-center"
+                disabled={isProcessing}
+                className="w-full bg-green-600 disabled:bg-green-300 text-white font-semibold py-3 rounded-lg flex items-center justify-center"
               >
-                <CheckCircle size={18} className="mr-2" /> Mark as Returned
+                <CheckCircle size={18} className="mr-2" /> {isProcessing ? 'Processing...' : 'Mark as Returned'}
               </button>
             </div>
           )}
