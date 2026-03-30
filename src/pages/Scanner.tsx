@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAppStore } from '../store/appStore';
-import { QrCode, Search, CheckCircle, ArrowRight, Camera, ChevronDown, ChevronUp, User, Phone, MapPin } from 'lucide-react';
-import { Html5QrcodeScanner } from 'html5-qrcode';
+import { QrCode, Search, CheckCircle, ArrowRight, Camera, ChevronDown, ChevronUp, User, Phone, MapPin, AlertTriangle, X } from 'lucide-react';
+import { Html5Qrcode } from 'html5-qrcode';
 import * as services from '../domain/services';
 import { Jar } from '../domain/models';
 import { toast } from 'sonner';
@@ -16,6 +16,9 @@ export default function Scanner() {
   const [isScanning, setIsScanning] = useState(false);
   const [showCustomerDetails, setShowCustomerDetails] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isCameraInitializing, setIsCameraInitializing] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [pendingAction, setPendingAction] = useState<(() => Promise<void>) | null>(null);
 
   useEffect(() => {
     loadInitialData();
@@ -25,32 +28,43 @@ export default function Scanner() {
   useEffect(() => {
     if (!isScanning || scanResult) return;
 
-    // OPTIMIZATION: Lower FPS (5 instead of 10) prevents thermal throttling on cheap Android phones
-    const scanner = new Html5QrcodeScanner(
-      "reader",
-      { 
-        fps: 5, 
-        qrbox: { width: 250, height: 250 },
-        rememberLastUsedCamera: true,
-        supportedScanTypes: [0] // 0 = QR_CODE only, speeds up processing
-      },
-      false
-    );
-
-    scanner.render(
-      (decodedText) => {
-        if (navigator.vibrate) navigator.vibrate(100);
-        setScanResult(decodedText);
+    setIsCameraInitializing(true);
+    const html5QrCode = new Html5Qrcode("reader");
+    
+    const startScanner = async () => {
+      try {
+        await html5QrCode.start(
+          { facingMode: "environment" },
+          {
+            fps: 10,
+            qrbox: { width: 250, height: 250 },
+          },
+          (decodedText) => {
+            if (navigator.vibrate) navigator.vibrate(100);
+            setScanResult(decodedText);
+            setIsScanning(false);
+          },
+          (errorMessage) => {
+            // parse error, ignore
+          }
+        );
+        setIsCameraInitializing(false);
+      } catch (err) {
+        console.error("Unable to start scanning", err);
+        toast.error("Camera access denied or error occurred.");
         setIsScanning(false);
-        scanner.clear().catch(console.error);
-      },
-      (error) => {
-        // Ignore continuous frame errors
+        setIsCameraInitializing(false);
       }
-    );
+    };
+
+    startScanner();
 
     return () => {
-      scanner.clear().catch(console.error);
+      if (html5QrCode.isScanning) {
+        html5QrCode.stop().then(() => {
+          html5QrCode.clear();
+        }).catch(err => console.error("Failed to stop scanner", err));
+      }
     };
   }, [isScanning, scanResult]);
 
@@ -90,13 +104,14 @@ export default function Scanner() {
 
         const customer = customers.find(c => c.id === selectedCustomer);
         if (customer && isAtLimit(customer)) {
-          const confirmDelivery = window.confirm(
-            `WARNING: ${customer.name} has reached their payment limit (Due: ₹${customer.total_due}). \n\nAre you sure you want to deliver another jar without payment?`
-          );
-          if (!confirmDelivery) {
-            setIsProcessing(false);
-            return;
-          }
+          setPendingAction(() => async () => {
+            await processDelivery(jar.id, selectedCustomer);
+            if (navigator.vibrate) navigator.vibrate(200);
+            toast.success('Jar delivered successfully!');
+          });
+          setShowConfirmModal(true);
+          setIsProcessing(false);
+          return;
         }
 
         await processDelivery(jar.id, selectedCustomer);
@@ -132,8 +147,14 @@ export default function Scanner() {
         <div className="space-y-6">
           
           {isScanning ? (
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-              <div id="reader" className="w-full overflow-hidden rounded-lg"></div>
+            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 relative">
+              {isCameraInitializing && (
+                <div className="absolute inset-0 z-10 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center gap-3 rounded-xl">
+                  <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                  <p className="text-sm font-medium text-gray-600">Starting camera...</p>
+                </div>
+              )}
+              <div id="reader" className="w-full overflow-hidden rounded-lg min-h-[300px]"></div>
               <button 
                 onClick={() => setIsScanning(false)}
                 className="w-full mt-4 bg-red-100 text-red-700 font-medium py-2 rounded-lg"
@@ -165,13 +186,26 @@ export default function Scanner() {
               <QrCode className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
               <input 
                 type="text" 
-                placeholder="Enter QR Code manually" 
+                placeholder="ENTER QR CODE MANUALLY" 
                 value={manualCode}
                 onChange={(e) => setManualCode(e.target.value)}
-                className="w-full pl-12 pr-4 py-4 bg-white border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 uppercase text-lg"
+                className="w-full pl-12 pr-10 py-4 bg-white border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 uppercase text-lg font-mono tracking-wider"
               />
+              {manualCode && (
+                <button 
+                  type="button"
+                  onClick={() => setManualCode('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  <X size={18} />
+                </button>
+              )}
             </div>
-            <button type="submit" className="bg-blue-600 text-white px-4 rounded-xl shadow-sm">
+            <button 
+              type="submit" 
+              disabled={!manualCode.trim()}
+              className="bg-blue-600 disabled:bg-blue-300 text-white px-6 rounded-xl shadow-sm transition-colors"
+            >
               <Search size={20} />
             </button>
           </form>
@@ -284,6 +318,63 @@ export default function Scanner() {
           >
             Scan Another
           </button>
+        </div>
+      )}
+
+      {/* Confirmation Modal */}
+      {showConfirmModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 space-y-4 animate-in fade-in zoom-in duration-200">
+            <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto">
+              <AlertTriangle size={32} />
+            </div>
+            <div className="text-center space-y-2">
+              <h3 className="text-xl font-bold text-gray-900">Limit Reached!</h3>
+              <p className="text-gray-600">
+                {customers.find(c => c.id === selectedCustomer)?.name} has reached their payment limit.
+              </p>
+              <div className="bg-red-50 p-3 rounded-lg">
+                <p className="text-red-700 font-bold">Due: ₹{customers.find(c => c.id === selectedCustomer)?.total_due}</p>
+              </div>
+              <p className="text-sm text-gray-500">
+                Are you sure you want to deliver another jar without collecting payment?
+              </p>
+            </div>
+            <div className="flex gap-3 pt-2">
+              <button 
+                onClick={() => { setShowConfirmModal(false); setPendingAction(null); }}
+                className="flex-1 py-3 bg-gray-100 text-gray-700 font-semibold rounded-xl"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={async () => {
+                  if (pendingAction) {
+                    setIsProcessing(true);
+                    try {
+                      await pendingAction();
+                      setShowConfirmModal(false);
+                      setPendingAction(null);
+                      // Reset after success
+                      setTimeout(() => {
+                        setScanResult(null);
+                        setJar(null);
+                        setSelectedCustomer('');
+                        setManualCode('');
+                        setShowCustomerDetails(false);
+                        setIsProcessing(false);
+                      }, 500);
+                    } catch (err) {
+                      setIsProcessing(false);
+                    }
+                  }
+                }}
+                className="flex-1 py-3 bg-red-600 text-white font-semibold rounded-xl shadow-lg shadow-red-200"
+              >
+                Yes, Deliver
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

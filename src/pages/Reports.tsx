@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useAppStore } from '../store/appStore';
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
+import { toast } from 'sonner';
 
 export default function Reports() {
   const { customers, loadInitialData } = useAppStore();
@@ -21,7 +24,79 @@ export default function Reports() {
     return [];
   };
 
-  const chartData = getChartData();
+  const handleExportPDF = () => {
+    try {
+      const doc = new jsPDF();
+      
+      // Title
+      doc.setFontSize(20);
+      doc.text('Water Jar Delivery - Analytics Report', 14, 22);
+      
+      // Date
+      doc.setFontSize(11);
+      doc.setTextColor(100);
+      doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 30);
+      
+      // Summary
+      doc.setFontSize(14);
+      doc.setTextColor(0);
+      doc.text('Summary', 14, 45);
+      
+      const totalRevenue = customers.reduce((acc, c) => acc + (c.total_due || 0), 0);
+      const totalJars = customers.reduce((acc, c) => acc + (c.jars_held || 0), 0);
+      
+      (doc as any).autoTable({
+        startY: 50,
+        head: [['Metric', 'Value']],
+        body: [
+          ['Total Outstanding Revenue', `INR ${totalRevenue}`],
+          ['Total Jars in Circulation', `${totalJars} Units`],
+          ['Total Customers', `${customers.length}`],
+        ],
+      });
+      
+      // Top Customers
+      doc.text('Top Customers', 14, (doc as any).lastAutoTable.finalY + 15);
+      
+      (doc as any).autoTable({
+        startY: (doc as any).lastAutoTable.finalY + 20,
+        head: [['Customer Name', 'Jars Held', 'Total Due', 'Cycle']],
+        body: topCustomers.map(c => [
+          c.name,
+          c.jars_held,
+          `INR ${c.total_due}`,
+          `${c.payment_cycle} jars`
+        ]),
+      });
+      
+      doc.save(`WaterJar_Report_${timeRange}.pdf`);
+      toast.success('PDF Report generated successfully!');
+    } catch (error) {
+      console.error('PDF Generation Error:', error);
+      toast.error('Failed to generate PDF report.');
+    }
+  };
+
+  const handleShare = async () => {
+    const totalRevenue = customers.reduce((acc, c) => acc + (c.total_due || 0), 0);
+    const shareData = {
+      title: 'Water Jar Delivery Report',
+      text: `Water Jar Delivery Analytics Summary:\nTotal Revenue: ₹${totalRevenue}\nTotal Customers: ${customers.length}\nTop Customer: ${topCustomers[0]?.name || 'N/A'}`,
+      url: window.location.origin
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        // Fallback to clipboard
+        await navigator.clipboard.writeText(`${shareData.text}\n${shareData.url}`);
+        toast.success('Report summary copied to clipboard!');
+      }
+    } catch (error) {
+      console.error('Share Error:', error);
+    }
+  };
 
   return (
     <div className="max-w-5xl mx-auto px-4 pt-2 space-y-4">
@@ -118,13 +193,13 @@ export default function Reports() {
                     {initials}
                   </div>
                   <div>
-                    <h4 className="font-bold text-on-surface text-sm leading-tight">{customer.name}</h4>
-                    <p className="text-[11px] text-on-surface-variant mt-0.5">{customer.jars_held} Jars this week</p>
+                    <h4 className="font-bold text-on-surface text-base leading-tight">{customer.name}</h4>
+                    <p className="text-xs text-on-surface-variant mt-0.5">{customer.jars_held} Jars this week</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="font-bold text-primary text-sm">₹{customer.total_due}</p>
-                  <p className="text-[10px] text-on-surface-variant uppercase tracking-wider">{customer.payment_cycle} jars</p>
+                  <p className="font-bold text-primary text-base">₹{customer.total_due}</p>
+                  <p className="text-[11px] text-on-surface-variant uppercase tracking-wider font-medium">{customer.payment_cycle} jars</p>
                 </div>
               </div>
             );
@@ -139,14 +214,14 @@ export default function Reports() {
       {/* Actions */}
       <section className="flex flex-col sm:flex-row gap-2 py-2">
         <button 
-          onClick={() => alert('PDF Report generation is not yet implemented.')}
+          onClick={handleExportPDF}
           className="flex-1 h-12 bg-gradient-to-r from-primary to-primary-container text-white rounded-lg font-bold flex items-center justify-center gap-2 text-sm shadow-[0_2px_6px_rgba(0,88,188,0.15)] active:scale-95 transition-all"
         >
           <span className="material-symbols-outlined text-sm">picture_as_pdf</span>
           PDF Report
         </button>
         <button 
-          onClick={() => alert('Sharing functionality is not yet implemented.')}
+          onClick={handleShare}
           className="flex-1 h-12 bg-surface-container-highest text-on-surface rounded-lg font-bold flex items-center justify-center gap-2 text-sm active:scale-95 transition-all"
         >
           <span className="material-symbols-outlined text-sm">share</span>
